@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { BarChart2, CheckCircle, Globe, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
-import { Graduate, calcMonthsToEmployment } from '../lib/types';
+import { Graduate, calcMonthsToEmployment, isEmployedStatus } from '../lib/types';
 import BarChart from './charts/BarChart';
 import DonutChart from './charts/DonutChart';
 
 type Tab = 'employment' | 'completion' | 'mobility';
-const HOME_COUNTRY = 'rwanda';
 
 function normalizeCountry(value: string | null | undefined) {
   return (value || '').trim().toLowerCase();
@@ -52,8 +51,7 @@ export default function Analytics() {
   }
 
   const employmentStatusData = [
-    { label: 'Employed', value: graduates.filter(g => g.employment_status === 'employed').length, color: '#10b981' },
-    { label: 'Self Employed', value: graduates.filter(g => g.employment_status === 'self_employed').length, color: '#3b82f6' },
+    { label: 'Employed', value: graduates.filter(g => isEmployedStatus(g.employment_status)).length, color: '#10b981' },
     { label: 'Further Study', value: graduates.filter(g => g.employment_status === 'further_study').length, color: '#f59e0b' },
     { label: 'Unemployed', value: graduates.filter(g => g.employment_status === 'unemployed').length, color: '#ef4444' },
     { label: 'Not Seeking', value: graduates.filter(g => g.employment_status === 'not_seeking').length, color: '#94a3b8' },
@@ -122,19 +120,21 @@ export default function Analytics() {
     }))
     .sort((a, b) => b.value - a.value);
 
-  const returnedHome = graduates.filter(g =>
-    g.study_location === 'abroad' &&
-    normalizeCountry(g.country_of_residence) === HOME_COUNTRY
-  ).length;
-  const stayedAbroad = graduates.filter(g =>
-    g.study_location === 'abroad' &&
-    !!normalizeCountry(g.country_of_residence) &&
-    normalizeCountry(g.country_of_residence) !== HOME_COUNTRY
-  ).length;
-  const abroadUnknown = graduates.filter(g => g.study_location === 'abroad').length - returnedHome - stayedAbroad;
+  const abroadGraduates = graduates.filter(g => g.study_location === 'abroad');
+  const returnedHome = abroadGraduates.filter(g => {
+    const origin = normalizeCountry(g.country_of_origin);
+    const residence = normalizeCountry(g.country_of_residence);
+    return !!origin && !!residence && origin === residence;
+  }).length;
+  const didNotReturnHome = abroadGraduates.filter(g => {
+    const origin = normalizeCountry(g.country_of_origin);
+    const residence = normalizeCountry(g.country_of_residence);
+    return !!origin && !!residence && origin !== residence;
+  }).length;
+  const abroadUnknown = abroadGraduates.length - returnedHome - didNotReturnHome;
 
   const mobilityReturnData = [
-    { label: 'Stayed Abroad', value: stayedAbroad, color: '#3b82f6' },
+    { label: 'Did Not Return Home', value: didNotReturnHome, color: '#3b82f6' },
     { label: 'Returned Home', value: returnedHome, color: '#10b981' },
     { label: 'Unknown', value: Math.max(0, abroadUnknown), color: '#94a3b8' },
   ].filter(d => d.value > 0);
@@ -266,7 +266,7 @@ export default function Analytics() {
             <h3 className="font-semibold text-slate-800 mb-4">Abroad Graduates Summary</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="bg-blue-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-blue-700">{graduates.filter(g => g.study_location === 'abroad').length}</div>
+                <div className="text-2xl font-bold text-blue-700">{abroadGraduates.length}</div>
                 <div className="text-xs text-slate-500 mt-1">Total Studied Abroad</div>
               </div>
               <div className="bg-emerald-50 rounded-lg p-4 text-center">
@@ -274,13 +274,13 @@ export default function Analytics() {
                 <div className="text-xs text-slate-500 mt-1">Returned Home</div>
               </div>
               <div className="bg-amber-50 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-amber-700">{stayedAbroad}</div>
-                <div className="text-xs text-slate-500 mt-1">Remained Abroad</div>
+                <div className="text-2xl font-bold text-amber-700">{didNotReturnHome}</div>
+                <div className="text-xs text-slate-500 mt-1">Did Not Return Home</div>
               </div>
               <div className="bg-slate-50 rounded-lg p-4 text-center">
                 <div className="text-2xl font-bold text-slate-700">
-                  {graduates.filter(g => g.study_location === 'abroad').length > 0
-                    ? Math.round((returnedHome / graduates.filter(g => g.study_location === 'abroad').length) * 100)
+                  {abroadGraduates.length > 0
+                    ? Math.round((returnedHome / abroadGraduates.length) * 100)
                     : 0}%
                 </div>
                 <div className="text-xs text-slate-500 mt-1">Return Rate</div>

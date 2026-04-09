@@ -2,6 +2,39 @@
 
 GradTrack is a graduate management system for recording student journeys from school to university, employment, further study, and funding recovery. It helps track personal information, education history, employment outcomes, mobility, and loan repayment in one place.
 
+## Architecture
+
+- Frontend: React + TypeScript + Vite
+- Backend: Node.js + Express
+- ORM: Prisma
+- Database: PostgreSQL / Supabase Postgres
+- Authentication: JWT-based admin login for dashboard access
+
+## Setup
+
+1. Install dependencies:
+   `npm install`
+2. Copy `.env.example` values into your local environment.
+3. Set `DATABASE_URL` to your Supabase Postgres connection string.
+4. Set `VITE_API_URL` to your backend URL, for example `http://localhost:4000/api`.
+5. Generate Prisma client:
+   `npm run prisma:generate`
+6. Push the Prisma schema to the database:
+   `npm run prisma:push`
+7. Create an admin user:
+   `npm run admin:create -- admin@example.com your-password`
+8. Start the backend:
+   `npm run backend`
+9. Start the frontend:
+   `npm run dev`
+
+## Security
+
+- The dashboard is now protected and only accessible to authenticated admin users.
+- Graduate CRUD now goes through the Node.js backend instead of the browser talking directly to the database.
+- Prisma is used as the data-access layer between the backend and the database.
+- You should still tighten database permissions and use a strong `JWT_SECRET` in production.
+
 ## How It Works
 
 The system stores each graduate as a single record and follows their journey across different stages:
@@ -77,7 +110,7 @@ This view shows completion rate by program and compares study duration against c
 
 #### Mobility Analytics
 
-This view shows study-abroad patterns, return-versus-stay-abroad outcomes, and the return rate for graduates who studied outside Rwanda.
+This view shows study-abroad patterns, return-versus-stay-abroad outcomes, and the return rate for graduates who studied abroad. Return-home logic is based on comparing country of origin with country of residence only for graduates who studied abroad.
 
 ![Analytics - Mobility](public/readme/analytics.png)
 
@@ -90,6 +123,7 @@ This page focuses on financial support and repayment tracking. It shows loan rep
 ## Notes
 
 - Screenshots above are expected in `public/readme/`.
+- Backend environment variables are documented in `.env.example`.
 - Suggested file names:
   - `dashboard.png`
   - `graduate-list.png`

@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Graduate {
+  id                             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  graduate_id                    String   @unique
+  first_name                     String
+  last_name                      String
+  email                          String   @default("")
+  phone                          String   @default("")
+  date_of_birth                  DateTime? @db.Date
+  gender                         String   @default("not_specified")
+  primary_school                 String   @default("")
+  secondary_o_level_school       String   @default("")
+  secondary_a_level_school       String   @default("")
+  university_institution         String   @default("")
+  university_program             String   @default("")
+  degree_level                   String   @default("bachelor")
+  university_start_year          Int?
+  university_end_year            Int?
+  completion_status              String   @default("completed")
+  study_location                 String   @default("local")
+  study_country                  String   @default("")
+  funding_type                   String   @default("self_funded")
+  sponsor_name                   String   @default("")
+  loan_amount                    Decimal  @default(0) @db.Decimal(12, 2)
+  repayment_status               String   @default("not_applicable")
+  employment_status              String   @default("unemployed")
+  employer                       String   @default("")
+  job_role                       String   @default("")
+  sector                         String   @default("")
+  work_location                  String   @default("local")
+  further_study_location         String   @default("local")
+  further_study_country          String   @default("")
+  further_study_field            String   @default("")
+  further_study_graduation_year  Int?
+  further_study_funding          String   @default("self_funded")
+  country_of_origin              String   @default("")
+  country_of_residence           String   @default("")
+  employment_date                DateTime? @db.Date
+  graduation_year                Int?
+  created_at                     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([university_program], map: "idx_graduates_program")
+  @@index([employment_status], map: "idx_graduates_employment_status")
+  @@index([funding_type], map: "idx_graduates_funding_type")
+  @@index([completion_status], map: "idx_graduates_completion_status")
+  @@map("graduates")
+}
+
+model AdminUser {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password_hash String
+  role          String   @default("admin")
+  created_at    DateTime @default(now())
+
+  @@map("admin_users")
+}

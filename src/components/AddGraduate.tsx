@@ -10,6 +10,7 @@ const COMPLETION_STATUSES = ['completed', 'incomplete', 'dropped_out', 'ongoing'
 
 const initialForm = {
   first_name: '', last_name: '', email: '', phone: '', date_of_birth: '', gender: 'not_specified',
+  country_of_origin: '',
   primary_school: '', secondary_o_level_school: '', secondary_a_level_school: '',
   university_institution: '', university_program: '', university_program_other: '', degree_level: 'bachelor',
   university_start_year: '', university_end_year: '', completion_status: 'completed',
@@ -30,6 +31,7 @@ function toFormState(g: Graduate): FormState {
     phone: g.phone || '',
     date_of_birth: g.date_of_birth || '',
     gender: g.gender,
+    country_of_origin: g.country_of_origin || '',
     primary_school: g.primary_school || '',
     secondary_o_level_school: g.secondary_o_level_school || '',
     secondary_a_level_school: g.secondary_a_level_school || '',
@@ -74,6 +76,7 @@ function validateStep(step: number, form: FormState): string {
     if (isBlank(form.phone)) return 'Phone number is required.';
     if (isBlank(form.date_of_birth)) return 'Date of birth is required.';
     if (isBlank(form.gender)) return 'Gender is required.';
+    if (isBlank(form.country_of_origin)) return 'Country of origin is required.';
   }
   if (step === 1) {
     if (isBlank(form.primary_school)) return 'Primary school is required.';
@@ -178,6 +181,7 @@ export default function AddGraduate({ onSuccess, editGraduate }: Props) {
         phone: form.phone,
         date_of_birth: form.date_of_birth || null,
         gender: form.gender as Graduate['gender'],
+        country_of_origin: form.country_of_origin,
         primary_school: form.primary_school,
         secondary_o_level_school: form.secondary_o_level_school,
         secondary_a_level_school: form.secondary_a_level_school,
@@ -320,6 +324,9 @@ export default function AddGraduate({ onSuccess, editGraduate }: Props) {
                   <select className={inputCls} value={form.gender} onChange={e => set('gender', e.target.value)}>
                     {['not_specified', 'male', 'female', 'other'].map(g => <option key={g} value={g}>{label(g)}</option>)}
                   </select>
+                </Field>
+                <Field label="Country of Origin" required>
+                  <input className={inputCls} value={form.country_of_origin} onChange={e => set('country_of_origin', e.target.value)} placeholder="e.g. Rwanda" />
                 </Field>
               </div>
             </div>
