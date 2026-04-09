@@ -102,3 +102,26 @@ This page focuses on financial support and repayment tracking. It shows loan rep
   - `analytics_completion.png`
   - `analytics.png`
   - `funding.png`
+
+## Future Improvements
+
+- Add authentication and role-based access so only authorized users can manage graduate records.
+- Tighten Supabase Row Level Security policies for safer production use.
+- Move sensitive write logic and graduate ID generation to backend functions or Supabase Edge Functions.
+- Add audit fields such as `created_by`, `updated_by`, and `updated_at`.
+- Improve validation for dates, country names, employment transitions, and funding combinations.
+- Add export options for CSV, Excel, and PDF reports.
+- Add notifications or reminders for loan repayment and graduate follow-up.
+- Add stronger dashboards with year-by-year and cohort-based trend analysis.
+- Add document upload support for sponsorship letters, loan agreements, and related files.
+- Add better production readiness features such as backups, monitoring, and error reporting.
+
+## What Can Be Added Next
+
+- User login for admins, staff, and reviewers.
+- A settings page for managing programs, sectors, and funding options.
+- Bulk import for graduate records from CSV or Excel.
+- A graduate timeline view showing the full journey from school to employment or further study.
+- A reports page for printable summaries and executive insights.
+- Email or SMS integration for graduate communication and tracking.
+- Public-safe analytics views that show summary statistics without exposing personal data.
