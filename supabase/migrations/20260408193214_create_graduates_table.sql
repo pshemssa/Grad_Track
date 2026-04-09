@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS graduates (
   further_study_field text DEFAULT '',
   further_study_graduation_year int,
   further_study_funding text DEFAULT 'self_funded',
+  country_of_origin text DEFAULT '',
   country_of_residence text DEFAULT '',
   employment_date date,
   graduation_year int,

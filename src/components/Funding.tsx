@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DollarSign, TrendingUp, AlertCircle, Award } from 'lucide-react';
 import { api } from '../lib/api';
-import { Graduate } from '../lib/types';
+import { Graduate, isEmployedStatus } from '../lib/types';
 import BarChart from './charts/BarChart';
 import DonutChart from './charts/DonutChart';
 
@@ -83,7 +83,7 @@ export default function Funding() {
     .map(([label, value]) => ({ label, value, color: '#0891b2' }));
 
   const sponsorEmployment = graduates
-    .filter(g => g.sponsor_name && ['employed', 'self_employed'].includes(g.employment_status))
+    .filter(g => g.sponsor_name && isEmployedStatus(g.employment_status))
     .reduce<Record<string, number>>((acc, g) => {
       acc[g.sponsor_name] = (acc[g.sponsor_name] || 0) + 1;
       return acc;

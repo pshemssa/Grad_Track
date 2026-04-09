@@ -55,6 +55,7 @@ export default function GraduateDetails({ graduate, onBack, onEdit }: Props) {
           <DetailField label="Email" value={graduate.email} />
           <DetailField label="Phone" value={graduate.phone} />
           <DetailField label="Date of Birth" value={graduate.date_of_birth} />
+          <DetailField label="Country of Origin" value={graduate.country_of_origin} />
           <DetailField label="Gender" value={formatLabel(graduate.gender)} />
         </div>
       </section>

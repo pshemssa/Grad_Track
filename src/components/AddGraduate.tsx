@@ -17,7 +17,7 @@ const initialForm = {
   funding_type: 'self_funded', sponsor_name: '', loan_amount: '', repayment_status: 'not_applicable',
   employment_status: 'unemployed', employer: '', job_role: '', sector: '',
   work_location: 'local', further_study_location: 'local', further_study_country: '', further_study_field: '', further_study_field_other: '', further_study_graduation_year: '', further_study_funding: 'self_funded',
-  country_of_residence: '', employment_date: '', graduation_year: '',
+  country_of_origin: '', country_of_residence: '', employment_date: '', graduation_year: '',
 };
 
 type FormState = typeof initialForm;
@@ -57,6 +57,7 @@ function toFormState(g: Graduate): FormState {
     further_study_field_other: '',
     further_study_graduation_year: g.further_study_graduation_year ? String(g.further_study_graduation_year) : '',
     further_study_funding: g.further_study_funding || 'self_funded',
+    country_of_origin: g.country_of_origin || '',
     country_of_residence: g.country_of_residence || '',
     employment_date: g.employment_date || '',
     graduation_year: g.graduation_year ? String(g.graduation_year) : '',
@@ -74,6 +75,7 @@ function validateStep(step: number, form: FormState): string {
     if (isBlank(form.phone)) return 'Phone number is required.';
     if (isBlank(form.date_of_birth)) return 'Date of birth is required.';
     if (isBlank(form.gender)) return 'Gender is required.';
+    if (isBlank(form.country_of_origin)) return 'Country of origin is required.';
   }
   if (step === 1) {
     if (isBlank(form.primary_school)) return 'Primary school is required.';
@@ -207,6 +209,7 @@ export default function AddGraduate({ onSuccess, editGraduate }: Props) {
           : form.further_study_field,
         further_study_graduation_year: form.further_study_graduation_year ? parseInt(form.further_study_graduation_year) : null,
         further_study_funding: form.further_study_funding as Graduate['funding_type'],
+        country_of_origin: form.country_of_origin,
         country_of_residence: form.country_of_residence,
         employment_date: form.employment_date || null,
         graduation_year: form.graduation_year ? parseInt(form.graduation_year) : null,
@@ -315,6 +318,9 @@ export default function AddGraduate({ onSuccess, editGraduate }: Props) {
                 </Field>
                 <Field label="Date of Birth">
                   <input type="date" className={inputCls} value={form.date_of_birth} onChange={e => set('date_of_birth', e.target.value)} />
+                </Field>
+                <Field label="Country of Origin" required>
+                  <input className={inputCls} value={form.country_of_origin} onChange={e => set('country_of_origin', e.target.value)} placeholder="e.g. Rwanda" />
                 </Field>
                 <Field label="Gender">
                   <select className={inputCls} value={form.gender} onChange={e => set('gender', e.target.value)}>

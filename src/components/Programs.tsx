@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BookOpen, Clock, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
-import { Graduate, calcMonthsToEmployment } from '../lib/types';
+import { Graduate, calcMonthsToEmployment, isEmployedStatus } from '../lib/types';
 import BarChart from './charts/BarChart';
 
 const CHART_COLORS = ['#0891b2', '#0e7490', '#155e75', '#164e63', '#06b6d4', '#22d3ee', '#67e8f9', '#a5f3fc', '#cffafe'];
@@ -75,7 +75,7 @@ export default function Programs() {
   const programStats = Object.entries(programCounts).map(([program, count]) => {
     const grads = graduates.filter(g => g.university_program === program);
     const completed = grads.filter(g => g.completion_status === 'completed').length;
-    const employed = grads.filter(g => ['employed', 'self_employed'].includes(g.employment_status)).length;
+    const employed = grads.filter(g => isEmployedStatus(g.employment_status)).length;
     const months = grads
       .map(g => calcMonthsToEmployment(g.graduation_year, g.employment_date))
       .filter((m): m is number => m !== null);

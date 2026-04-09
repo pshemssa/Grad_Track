@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Users, Briefcase, Clock, Globe, TrendingUp, Award, DollarSign, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
-import { Graduate, calcMonthsToEmployment } from '../lib/types';
+import { Graduate, calcMonthsToEmployment, isEmployedStatus } from '../lib/types';
 import BarChart from './charts/BarChart';
 import DonutChart from './charts/DonutChart';
 
@@ -69,7 +69,7 @@ export default function Dashboard() {
 
   const total = graduates.length;
   const completed = graduates.filter(g => g.completion_status === 'completed');
-  const employedAmongCompleted = completed.filter(g => ['employed', 'self_employed'].includes(g.employment_status));
+  const employedAmongCompleted = completed.filter(g => isEmployedStatus(g.employment_status));
   const abroad = graduates.filter(g => g.study_location === 'abroad');
   const employmentRate = completed.length > 0 ? Math.round((employedAmongCompleted.length / completed.length) * 100) : 0;
 

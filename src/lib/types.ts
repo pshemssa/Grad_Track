@@ -44,6 +44,7 @@ export interface Graduate {
   further_study_field: string;
   further_study_graduation_year: number | null;
   further_study_funding: FundingType;
+  country_of_origin: string;
   country_of_residence: string;
   employment_date: string | null;
   graduation_year: number | null;
@@ -52,6 +53,10 @@ export interface Graduate {
 }
 
 export interface GraduateFormData extends Omit<Graduate, 'id' | 'created_at'> {}
+
+export function isEmployedStatus(status: EmploymentStatus): boolean {
+  return status === 'employed' || status === 'self_employed';
+}
 
 export function calcMonthsToEmployment(graduationYear: number | null, employmentDate: string | null): number | null {
   if (!graduationYear || !employmentDate) return null;
