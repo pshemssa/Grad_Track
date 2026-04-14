@@ -10,6 +10,14 @@ import bcrypt from 'bcryptjs';
 import { prisma } from './prisma.js';
 import { createAdminToken, requireAdmin } from './auth.js';
 
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled rejection:', err);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+});
+
 const app = express();
 const PORT = Number(process.env.PORT || 4000);
 const PAGE_SIZE = 10;
@@ -166,47 +174,57 @@ app.get('/api/dashboard', requireAdmin, async (_req, res) => {
 });
 
 app.get('/api/graduates', requireAdmin, async (req, res) => {
-  const page = Math.max(1, Number(req.query.page || 1));
-  const search = String(req.query.search || '').trim();
-  const status = String(req.query.status || '').trim();
-  const program = String(req.query.program || '').trim();
+  try {
+    const page = Math.max(1, Number(req.query.page || 1));
+    const search = String(req.query.search || '').trim();
+    const status = String(req.query.status || '').trim();
+    const program = String(req.query.program || '').trim();
 
-  const where = {
-    ...(status ? { employment_status: status } : {}),
-    ...(program ? { university_program: program } : {}),
-    ...(search ? {
-      OR: [
-        { first_name: { contains: search, mode: 'insensitive' } },
-        { last_name: { contains: search, mode: 'insensitive' } },
-        { graduate_id: { contains: search, mode: 'insensitive' } },
-        { university_program: { contains: search, mode: 'insensitive' } },
-        { employer: { contains: search, mode: 'insensitive' } },
-      ],
-    } : {}),
-  };
+    const where = {
+      ...(status ? { employment_status: status } : {}),
+      ...(program ? { university_program: program } : {}),
+      ...(search ? {
+        OR: [
+          { first_name: { contains: search, mode: 'insensitive' } },
+          { last_name: { contains: search, mode: 'insensitive' } },
+          { graduate_id: { contains: search, mode: 'insensitive' } },
+          { university_program: { contains: search, mode: 'insensitive' } },
+          { employer: { contains: search, mode: 'insensitive' } },
+        ],
+      } : {}),
+    };
 
-  const [total, rows] = await Promise.all([
-    prisma.graduate.count({ where }),
-    prisma.graduate.findMany({
-      where,
-      orderBy: { created_at: 'desc' },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-  ]);
+    const [total, rows] = await Promise.all([
+      prisma.graduate.count({ where }),
+      prisma.graduate.findMany({
+        where,
+        orderBy: { created_at: 'desc' },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+      }),
+    ]);
 
-  res.json({
-    data: rows.map(normalizeGraduate),
-    total,
-    page,
-    pageSize: PAGE_SIZE,
-    totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
-  });
+    res.json({
+      data: rows.map(normalizeGraduate),
+      total,
+      page,
+      pageSize: PAGE_SIZE,
+      totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+    });
+  } catch (error) {
+    console.error('Get graduates error:', error.message);
+    res.status(503).json({ error: 'Service unavailable. Please try again.' });
+  }
 });
 
 app.get('/api/graduates/all', requireAdmin, async (_req, res) => {
-  const rows = await prisma.graduate.findMany({ orderBy: { created_at: 'desc' } });
-  res.json({ data: rows.map(normalizeGraduate) });
+  try {
+    const rows = await prisma.graduate.findMany({ orderBy: { created_at: 'desc' } });
+    res.json({ data: rows.map(normalizeGraduate) });
+  } catch (error) {
+    console.error('Get all graduates error:', error.message);
+    res.status(503).json({ error: 'Service unavailable. Please try again.' });
+  }
 });
 
 app.post('/api/graduates', requireAdmin, async (req, res) => {
