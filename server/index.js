@@ -1,6 +1,11 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { existsSync } from 'fs';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 import bcrypt from 'bcryptjs';
 import { prisma } from './prisma.js';
 import { createAdminToken, requireAdmin } from './auth.js';
@@ -102,47 +107,62 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body || {};
+  try {
+    const { email, password } = req.body || {};
 
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required.' });
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const admin = await prisma.adminUser.findUnique({
+      where: { email: email.trim().toLowerCase() },
+    });
+
+    if (!admin) {
+      return res.status(401).json({ error: 'Invalid credentials.' });
+    }
+
+    const matches = await bcrypt.compare(password, admin.password_hash);
+    if (!matches) {
+      return res.status(401).json({ error: 'Invalid credentials.' });
+    }
+
+    res.json({
+      token: createAdminToken(admin),
+      user: { id: admin.id, email: admin.email, role: admin.role },
+    });
+  } catch (error) {
+    console.error('Login error:', error.message);
+    res.status(503).json({ error: 'Service unavailable. Please try again.' });
   }
-
-  const admin = await prisma.adminUser.findUnique({
-    where: { email: email.trim().toLowerCase() },
-  });
-
-  if (!admin) {
-    return res.status(401).json({ error: 'Invalid credentials.' });
-  }
-
-  const matches = await bcrypt.compare(password, admin.password_hash);
-  if (!matches) {
-    return res.status(401).json({ error: 'Invalid credentials.' });
-  }
-
-  res.json({
-    token: createAdminToken(admin),
-    user: { id: admin.id, email: admin.email, role: admin.role },
-  });
 });
 
 app.get('/api/auth/me', requireAdmin, async (req, res) => {
-  const admin = await prisma.adminUser.findUnique({
-    where: { id: req.user.sub },
-    select: { id: true, email: true, role: true },
-  });
+  try {
+    const admin = await prisma.adminUser.findUnique({
+      where: { id: req.user.sub },
+      select: { id: true, email: true, role: true },
+    });
 
-  if (!admin) {
-    return res.status(404).json({ error: 'Admin not found.' });
+    if (!admin) {
+      return res.status(404).json({ error: 'Admin not found.' });
+    }
+
+    res.json({ user: admin });
+  } catch (error) {
+    console.error('Auth me error:', error.message);
+    res.status(503).json({ error: 'Service unavailable. Please try again.' });
   }
-
-  res.json({ user: admin });
 });
 
 app.get('/api/dashboard', requireAdmin, async (_req, res) => {
-  const graduates = await prisma.graduate.findMany({ orderBy: { created_at: 'desc' } });
-  res.json({ data: graduates.map(normalizeGraduate) });
+  try {
+    const graduates = await prisma.graduate.findMany({ orderBy: { created_at: 'desc' } });
+    res.json({ data: graduates.map(normalizeGraduate) });
+  } catch (error) {
+    console.error('Dashboard error:', error.message);
+    res.status(503).json({ error: 'Service unavailable. Please try again.' });
+  }
 });
 
 app.get('/api/graduates', requireAdmin, async (req, res) => {
@@ -265,6 +285,12 @@ app.delete('/api/graduates/:id', requireAdmin, async (req, res) => {
     res.status(400).json({ error: 'Failed to delete graduate.' });
   }
 });
+
+const distPath = join(__dirname, '..', 'dist');
+if (existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (_req, res) => res.sendFile(join(distPath, 'index.html')));
+}
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
